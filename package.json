@@ -1,0 +1,29 @@
+{
+  "name": "analytics_dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "scripts"
+  ],
+  "scripts": {
+    "web:dev": "npm run dev -w apps/web",
+    "bot:start": "node -w apps/telegram-bot index.js",
+    "sync": "node scripts/sync_orders.js",
+    "load-mocks": "node scripts/upload_mocks.js",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "axios": "^1.15.0",
+    "dotenv": "^17.4.2",
+    "prisma": "^6.19.3"
+  }
+}
