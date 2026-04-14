@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "web:dev": "npm run dev -w apps/web",
+    "web:build": "npm run build -w apps/web",
     "bot:start": "node -w apps/telegram-bot index.js",
     "sync": "node scripts/sync_orders.js",
     "load-mocks": "node scripts/upload_mocks.js",

@@ -1,5 +1,13 @@
-import { PrismaClient } from '@prisma/client';
+import { Order, PrismaClient } from '@prisma/client';
 import OrderChart from '@/components/OrderChart';
+
+type OrderPartial = Pick<Order, 'createdAt' | 'totalSum'>;
+
+interface ChartItem {
+  date: string;
+  amount: number;
+  count: number;
+}
 
 const prisma = new PrismaClient();
 
@@ -14,15 +22,20 @@ export default async function DashboardPage() {
   });
 
   // Преобразуем данные для графика (группировка по дням)
-  const chartData = orders.reduce((acc: any[], order) => {
+  const chartData = orders.reduce((acc: ChartItem[], order: OrderPartial) => {
     const date = new Date(order.createdAt).toLocaleDateString('ru-RU');
     const existing = acc.find(item => item.date === date);
 
     if (existing) {
+      // Входящее поле может называться totalSum или totalSumm (проверь в API)
       existing.amount += Number(order.totalSum || 0);
       existing.count += 1;
     } else {
-      acc.push({ date, amount: Number(order.totalSum || 0), count: 1 });
+      acc.push({
+        date,
+        amount: Number(order.totalSum || 0),
+        count: 1
+      });
     }
     return acc;
   }, []);
