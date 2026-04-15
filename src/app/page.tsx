@@ -2,6 +2,8 @@ import { Order } from '@prisma/client';
 import OrderChart from '@/components/OrderChart';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic'
+
 type OrderPartial = Pick<Order, 'createdAt' | 'totalSum'>;
 
 interface ChartItem {
