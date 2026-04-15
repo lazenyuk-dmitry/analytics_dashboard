@@ -1,5 +1,6 @@
-import { Order, PrismaClient } from '@prisma/client';
+import { Order } from '@prisma/client';
 import OrderChart from '@/components/OrderChart';
+import { prisma } from '@/lib/prisma';
 
 type OrderPartial = Pick<Order, 'createdAt' | 'totalSum'>;
 
@@ -8,8 +9,6 @@ interface ChartItem {
   amount: number;
   count: number;
 }
-
-const prisma = new PrismaClient();
 
 export default async function DashboardPage() {
   // Получаем заказы, сгруппированные по датам
