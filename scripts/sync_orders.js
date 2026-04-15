@@ -47,6 +47,12 @@ module.exports = { syncOrders };
 if (require.main === module) {
   require("dotenv").config();
   syncOrders()
-    .then(c => { console.log(`Done: ${c}`); process.exit(0); })
-    .catch(e => { console.error(e); process.exit(1); });
+    .then((c) => {
+      console.log(`Done: ${c}`);
+      process.exit(0);
+    })
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
 }
