@@ -1,49 +1,52 @@
 const { PrismaClient } = require("@prisma/client");
 const axios = require("axios");
-require("dotenv").config();
 
-const prisma = new PrismaClient();
+// Используем глобальную переменную для Prisma, чтобы не плодить коннекты
+let prisma;
 
 async function syncOrders() {
+  if (!prisma) prisma = new PrismaClient();
+
   try {
     console.log("Запрашиваю заказы из RetailCRM...");
     const response = await axios.get(
       `${process.env.RETAILCRM_URL}/api/v5/orders`,
-      {
-        params: { apiKey: process.env.RETAILCRM_KEY, limit: 100 },
-      }
+      { params: { apiKey: process.env.RETAILCRM_KEY, limit: 100 } }
     );
 
     const orders = response.data.orders;
-
-    console.log(`Получено ${orders.length}. Синхронизирую с БД...`);
-
-    // Используем транзакцию или цикл для upsert
-    for (const o of orders) {
-      await prisma.order.upsert({
-        where: { id: BigInt(o.id) },
-        update: {
-          status: o.status,
-          totalSum: o.totalSumm,
-          customerName: `${o.firstName || ""} ${o.lastName || ""}`.trim(),
-        },
+    const operations = orders.map((o) => {
+      const orderId = BigInt(o.id);
+      const customerName = `${o.firstName || ""} ${o.lastName || ""}`.trim();
+      return prisma.order.upsert({
+        where: { id: orderId },
+        update: { status: o.status, totalSum: o.totalSumm, customerName },
         create: {
-          id: BigInt(o.id),
+          id: orderId,
           externalId: o.externalId,
           status: o.status,
           totalSum: o.totalSumm,
-          customerName: `${o.firstName || ""} ${o.lastName || ""}`.trim(),
+          customerName,
           createdAt: new Date(o.createdAt),
         },
       });
-    }
+    });
 
-    console.log("✅ Данные в Supabase обновлены через Prisma!");
+    const results = await prisma.$transaction(operations);
+    return results.length;
   } catch (err) {
-    console.error("❌ Ошибка Prisma:", err);
-  } finally {
-    await prisma.$disconnect();
+    console.error("❌ Sync error:", err.message);
+    throw err;
   }
 }
 
-syncOrders();
+// Экспорт для Next.js
+module.exports = { syncOrders };
+
+// Запуск для консоли
+if (require.main === module) {
+  require("dotenv").config();
+  syncOrders()
+    .then(c => { console.log(`Done: ${c}`); process.exit(0); })
+    .catch(e => { console.error(e); process.exit(1); });
+}

@@ -9,8 +9,8 @@
     "scripts"
   ],
   "scripts": {
-    "web:dev": "npm run dev -w apps/web",
-    "web:build": "npm run build -w apps/web",
+    "web:dev": "dotenv -e .env -- npm run dev -w apps/web",
+    "web:build": "dotenv -e .env -- npm run build -w apps/web",
     "bot:start": "node -w apps/telegram-bot index.js",
     "sync": "node scripts/sync_orders.js",
     "load-mocks": "node scripts/upload_mocks.js",
@@ -26,5 +26,8 @@
     "axios": "^1.15.0",
     "dotenv": "^17.4.2",
     "prisma": "^6.19.3"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^11.0.0"
   }
 }
