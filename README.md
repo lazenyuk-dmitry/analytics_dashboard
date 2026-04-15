@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Analytics Dashboard (RetailCRM + Next.js + Supabase)
 
-## Getting Started
+Дашборд для визуализации аналитики заказов из RetailCRM.
+Проект включает в себя систему синхронизации данных, базу данных на Supabase (PostgreSQL) и интерактивные графики.
 
-First, run the development server:
+[Dashboard (Vercel)](https://analytics-dashboard-ruddy-alpha.vercel.app/)
+
+![Dashboard Preview](/.github/screenshots/dashboard.png)
+
+---
+
+## 🚀 Основные возможности
+
+- Синхронизация данных: Автоматическое получение заказов из RetailCRM через API и сохранение в локальную БД.
+- Умный Upsert: Система обновляет существующие записи и создает новые, избегая дубликатов.
+- Аналитическая панель: Визуализация выручки по дням с использованием графиков.
+- Type Safety: Полная типизация всех процессов от API до базы данных.
+- CLI Инструменты: Скрипты для загрузки моковых данных и ручного запуска синхронизации.
+
+---
+
+## 🛠 Технологический стек
+
+- Framework: Next.js 15 (App Router)
+- Database: Supabase / PostgreSQL
+- ORM: Prisma
+- Charts: Recharts
+- API Client: Axios с централизованным конфигом.
+- Runtime: Node.js 20+ + tsx для запуска скриптов.
+
+---
+
+## 📋 Предварительные требования
+
+Перед началом убедитесь, что у вас установлены:
+
+- Node.js (v20.0.0 или выше)
+- Доступ к RetailCRM API (URL и Key)
+- Инстанс Supabase (или любая PostgreSQL)
+
+---
+
+## ⚙️ Установка и настройка
+
+1. Клонируйте репозиторий:
+
+```bash
+git clone https://github.com/your-username/analytics_dashboard.git
+cd analytics_dashboard
+```
+
+1. Установите зависимости:
+
+```bash
+npm install
+```
+
+1. Настройте переменные окружения:
+
+Создайте файл .env в корне проекта на основе .env.example и заполните его:
+
+```bash
+RETAILCRM_URL=...
+RETAILCRM_KEY=...
+
+TELEGRAM_TOKEN=...
+TELEGRAM_CHAT_ID=...
+
+DATABASE_URL=...
+DIRECT_URL=...
+```
+
+1. Примените миграции БД:
+
+```bash
+npx prisma db:generate
+npx prisma db:migrate -- --name init
+```
+
+## 🏃 Running the Project
+
+Режим разработки
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Откройте http://localhost:3000 для просмотра дашборда.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Инструменты командной строки (Scripts)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+В проекте настроены удобные команды для работы с данными:
 
-## Learn More
+- Загрузка моковых данных (из mock_orders.json в CRM):
 
-To learn more about Next.js, take a look at the following resources:
+  ```bash
+  npm run upload-mocks
+  ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Принудительная синхронизация (из CRM в вашу БД):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+  ```bash
+  npm run sync
+  ```
 
-## Deploy on Vercel
+## 🏗 Архитектура проекта
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `/src/lib` — Глобальные инстансы (Prisma Client, Axios Config).
+- `/src/services` — Бизнес-логика (скрипты синхронизации).
+- `/src/app/api` — API роуты для интеграции с внешними сервисами и фронтендом.
+- `/scripts` — Вспомогательные скрипты для разработки и наполнения данными.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔄 Механизм кэширования
+
+Для обеспечения актуальности данных на Vercel, страница дашборда настроена на динамический рендеринг:
+
+```TypeScript
+export const dynamic = 'force-dynamic';
+```
+
+Это гарантирует, что при каждом посещении пользователь видит самые свежие данные из базы, а не закэшированную версию момента сборки.
+
+## Challenges
+
+1. Почему то из retailcrm никак не срабатывает вызов апи телеграм в триггерах, блокировка на чьей то стороне наверно идет.
+   Пришлось для этого написать небольшой прокси `api/tg`
+
+1. Так же бэла проблема кэширования next приложения на vercel. Из за чего не обновлялись данные на дашборде.
+
+1. И самая главная проблема была с prisma версии 7. Очень какие то строгие настройки стали и неудобные, пришлось откатиться на 6 версию.
